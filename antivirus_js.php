@@ -1,4 +1,9 @@
 <?
+/**
+ * Version 1.1
+ *
+ *
+*/
 require($_SERVER["DOCUMENT_ROOT"]."/bitrix/header.php");
 ?><?
 set_time_limit(0);
@@ -82,14 +87,42 @@ function GetDirFilesR(){
                     echo "Бекап не создан, файл не вылечен<br>";
                 }
                 echo "</div>";
+            }elseif(stripos($last_line,'c=3-1;i=c-2;if(window.document)if(parseInt("0"+"1"+"2"+"3")===83)try{')!==false){
+                $limit_file_count++;
+                
+                echo "<div style='color:red;'>------------------------------------------------------------------------------------<br>";
+                echo "Файл: ".str_replace($_SERVER['DOCUMENT_ROOT'],"",$file). "<br>";
+                echo "Line [".count($file_)."]: <div style='background:#F0F0F0;padding:10px;color:black;'>".substr($last_line,0,400). "</div><br>";
+                array_pop($file_);
+                if(backup_js($file->getFilename(),$file->getPathname())){
+                    $_SESSION['JS_ANTIVIRUS_FILES'][]=$file->getPathname();
+                    if(file_put_contents($file,$file_)){
+                        $_SESSION['JS_ANTIVIRUS_FILES'][]=$file->getPathname();
+                        prn_v("<div style='color:green;'>Файл: ".str_replace($_SERVER['DOCUMENT_ROOT'],"",$file)." вылечен.<br><div style='background:#F0F0F0;padding:10px;color:black;'>".$last_line."</div></div>");
+                        echo "Вылечен! (зараза второй версии!)<br>";
+                    }else{
+                        prn_v("<div style='color:red;'>Файл: ".str_replace($_SERVER['DOCUMENT_ROOT'],"",$file)." не вылечен.Но бекапы созданы<br><div style='background:#F0F0F0;padding:10px;color:black;'>".$last_line."</div></div>");
+                        echo "Бекап создан, файл не вылечен<br>";
+                    }
+                }else{
+                    prn_v("<div style='color:red;'>Файл: ".str_replace($_SERVER['DOCUMENT_ROOT'],"",$file)." не вылечен.И бекапы не созданы<br><div style='background:#F0F0F0;padding:10px;color:black;'>".$last_line."</div></div>");
+                    echo "Бекап не создан, файл не вылечен<br>";
+                }
+                echo "</div>";
+                
+            }elseif(stripos($last_line,"Boolean().prototype")!==false || stripos($last_line,"Date().prototype")!==false){
+                echo "<div style='color:#AF8D43;'>------------------------------------------------------------------------------------<br>";
+                echo "Подозрительный файл (последняя строка содержит Boolean().prototype): ".str_replace($_SERVER['DOCUMENT_ROOT'],"",$file)."<br>";
+                echo "<div style='background:#F0F0F0;padding:10px;color:black;'>".$last_line."</div><br>";
+                echo "</div>";    
             }elseif(ToLower(substr($last_line,0,3))=="var"){
                 echo "<div style='color:#AF8D43;'>------------------------------------------------------------------------------------<br>";
                 echo "Подозрительный файл (последняя строка начинается с var): ".str_replace($_SERVER['DOCUMENT_ROOT'],"",$file)."<br>";
                 echo "<div style='background:#F0F0F0;padding:10px;color:black;'>".$last_line."</div><br>";
                 echo "</div>";
-            }elseif(strlen($last_line)>1000){
+            }elseif(strlen($last_line)>500){
                 echo "<div style='color:#AF8D43;'>------------------------------------------------------------------------------------<br>";
-                echo "Подозрительный файл (последняя строка больше 1000 символов в строке): ".str_replace($_SERVER['DOCUMENT_ROOT'],"",$file)."<br>";
+                echo "Подозрительный файл (последняя строка больше 500 символов в строке): ".str_replace($_SERVER['DOCUMENT_ROOT'],"",$file)."<br>";
                 echo "<div style='background:#F0F0F0;padding:10px;color:black;'>".$last_line."</div><br>";
                 echo "</div>";
             }elseif(stripos($last_line,"\x")!==false){
